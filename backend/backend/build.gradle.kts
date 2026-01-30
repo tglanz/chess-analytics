@@ -31,6 +31,9 @@ dependencies {
 
 
     implementation("org.reflections:reflections:0.10.2")
+
+    // Bridge SLF4J to Log4j2
+    implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.21.0")
 }
 
 tasks.register<JavaExec>("runSanity") {
