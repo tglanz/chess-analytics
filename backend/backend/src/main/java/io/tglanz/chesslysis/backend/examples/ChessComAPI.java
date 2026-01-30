@@ -1,7 +1,7 @@
 package io.tglanz.chesslysis.backend.examples;
 
+import io.tglanz.chesslysis.backend.chesscom.ArchivesDTO;
 import io.tglanz.chesslysis.backend.chesscom.ChessComClient;
-import io.tglanz.chesslysis.backend.chesscom.ListArchivesResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,20 +9,24 @@ public class ChessComAPI {
   private static final Logger logger = LoggerFactory.getLogger(ChessComAPI.class);
 
   public static void main(String[] args) {
-    ChessComClient client = new ChessComClient("tglanz");
+    String username = "tglanz";
+    ChessComClient client = new ChessComClient();
 
-    logger.info("Listing archives");
-    ListArchivesResponse listArchivesResponse = client.listArchives();
+    logger.info("Listing archives for {}", username);
+    ArchivesDTO archivesDTO = client.listArchives(username);
 
-    for (var archiveInfo : listArchivesResponse.archives.reversed()) {
+    // Iterate in reverse order (Java 11 compatible)
+    var archives = archivesDTO.getArchiveInfos();
+    for (int i = archives.size() - 1; i >= 0; i--) {
+      var archiveInfo = archives.get(i);
       logger.info("Listing games of {}", archiveInfo);
-      var listGamesResponse = client.listGames(archiveInfo);
+      var gamesDTO = client.listGamesFromUrl(archiveInfo.url);
 
-      for (var gameDTO : listGamesResponse.games) {
+      for (var gameDTO : gamesDTO.games) {
         var me = gameDTO.white;
         var him = gameDTO.black;
 
-        if (!me.username.equals("tglanz")) {
+        if (!me.username.equals(username)) {
           var temp = me;
           me = him;
           him = temp;

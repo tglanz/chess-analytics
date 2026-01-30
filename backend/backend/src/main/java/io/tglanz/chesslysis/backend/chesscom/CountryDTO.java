@@ -2,12 +2,10 @@ package io.tglanz.chesslysis.backend.chesscom;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class GamePlayerDTO {
-    public String uuid;
-    public String username;
-    public Integer rating;
-    public String result;
-
+public class CountryDTO {
     @JsonProperty("@id")
     public String id;
+
+    public String code;
+    public String name;
 }

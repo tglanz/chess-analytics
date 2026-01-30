@@ -31,4 +31,8 @@ public class Account {
   public static String conventionalId(ChessApp app, String appId) {
     return app.name() + "-" + appId;
   }
+
+  public String getId() {
+    return id;
+  }
 }

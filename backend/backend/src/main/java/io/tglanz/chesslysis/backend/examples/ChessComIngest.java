@@ -4,7 +4,6 @@ import io.tglanz.chesslysis.backend.Repository;
 import io.tglanz.chesslysis.backend.chesscom.ChessComClient;
 import io.tglanz.chesslysis.backend.model.Account;
 import io.tglanz.chesslysis.backend.model.ChessApp;
-import io.tglanz.chesslysis.backend.model.ChessAppType;
 import io.tglanz.chesslysis.backend.utils.Reflection;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.cfg.Configuration;
@@ -45,8 +44,8 @@ public class ChessComIngest {
 
     Map<String, Account> accountCache = new HashMap<>();
 
-    var archivesResponse = client.listArchives(username);
-    for (var archiveInfo : archivesResponse.archives) {
+    var archivesDTO = client.listArchives(username);
+    for (var archiveInfo : archivesDTO.getArchiveInfos()) {
 
     }
 

@@ -1,5 +1,6 @@
 package io.tglanz.chesslysis.backend.chesscom;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URI;
@@ -8,66 +9,82 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 public class ChessComClient {
-  public static final String SCHEME = "https";
-  public static final String HOSTNAME = "api.chess.com";
+  private static final String BASE_URL = "https://api.chess.com/pub";
+  private final HttpClient httpClient;
+  private final ObjectMapper objectMapper;
 
-  private static URI createURI(String... route) {
-    return URI.create(String.format("%s://%s/%s", SCHEME, HOSTNAME, String.join("/", route)));
+  public ChessComClient() {
+    this.httpClient = HttpClient.newHttpClient();
+    this.objectMapper = new ObjectMapper()
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   }
 
-  public String getPlayerId(String username) {
-    HttpRequest request =
-            HttpRequest.newBuilder()
-                    .uri(createURI("pub", "player", username))
-                    .GET()
-                    .build();
+  private <T> T get(String path, Class<T> responseType) {
+    HttpRequest request = HttpRequest.newBuilder()
+        .uri(URI.create(BASE_URL + path))
+        .GET()
+        .build();
 
     try {
-      HttpResponse<String> response =
-              HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-      return response.body();
+      HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      return objectMapper.readValue(response.body(), responseType);
     } catch (IOException | InterruptedException e) {
-      throw new RuntimeException(e);
+      throw new RuntimeException("Failed to fetch from " + path, e);
     }
   }
 
-  public ListArchivesResponse listArchives(String username) {
-    HttpRequest request =
-        HttpRequest.newBuilder()
-            .uri(createURI("pub", "player", username, "games", "archives"))
-            .GET()
-            .build();
+  private <T> T getFromUrl(String url, Class<T> responseType) {
+    HttpRequest request = HttpRequest.newBuilder()
+        .uri(URI.create(url))
+        .GET()
+        .build();
 
     try {
-      HttpResponse<String> response =
-          HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-
-      ObjectMapper mapper = new ObjectMapper();
-      return mapper.readValue(response.body(), ListArchivesResponse.class);
+      HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      return objectMapper.readValue(response.body(), responseType);
     } catch (IOException | InterruptedException e) {
-      throw new RuntimeException(e);
+      throw new RuntimeException("Failed to fetch from " + url, e);
     }
   }
 
-  public ListGamesResponse listGames(ArchiveInfo archiveInfo) {
-    return listGames(archiveInfo.url);
+  // Player endpoints
+  public PlayerProfileDTO getPlayerProfile(String username) {
+    return get("/player/" + username, PlayerProfileDTO.class);
   }
 
-  public ListGamesResponse listGames(String archiveUrl) {
-    HttpRequest request =
-            HttpRequest.newBuilder()
-                    .uri(URI.create(archiveUrl))
-                    .GET()
-                    .build();
+  public PlayerStatsDTO getPlayerStats(String username) {
+    return get("/player/" + username + "/stats", PlayerStatsDTO.class);
+  }
 
-    try {
-      HttpResponse<String> response =
-              HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+  public PlayerClubsDTO getPlayerClubs(String username) {
+    return get("/player/" + username + "/clubs", PlayerClubsDTO.class);
+  }
 
-      ObjectMapper mapper = new ObjectMapper();
-      return mapper.readValue(response.body(), ListGamesResponse.class);
-    } catch (IOException | InterruptedException e) {
-      throw new RuntimeException(e);
-    }
+  // Games endpoints
+  public ArchivesDTO listArchives(String username) {
+    return get("/player/" + username + "/games/archives", ArchivesDTO.class);
+  }
+
+  public GamesDTO listGames(String username, int year, int month) {
+    return get(String.format("/player/%s/games/%d/%02d", username, year, month), GamesDTO.class);
+  }
+
+  public GamesDTO listGamesFromUrl(String archiveUrl) {
+    return getFromUrl(archiveUrl, GamesDTO.class);
+  }
+
+  // Club endpoints
+  public ClubDTO getClub(String clubUrlId) {
+    return get("/club/" + clubUrlId, ClubDTO.class);
+  }
+
+  // Country endpoints
+  public CountryDTO getCountry(String isoCode) {
+    return get("/country/" + isoCode, CountryDTO.class);
+  }
+
+  // Leaderboards endpoint
+  public LeaderboardsDTO getLeaderboards() {
+    return get("/leaderboards", LeaderboardsDTO.class);
   }
 }

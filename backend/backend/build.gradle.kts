@@ -36,12 +36,30 @@ dependencies {
     implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.21.0")
 }
 
-tasks.register<JavaExec>("runSanity") {
+tasks.register<JavaExec>("runChessComDemo") {
     group = "application"
-    description = "Run Sanity example"
+    description = "Run Chess.com API endpoints demo"
 
     classpath = sourceSets["main"].runtimeClasspath
-    mainClass.set("io.tglanz.chesslysis.backend.examples.Sanity")
+    mainClass.set("io.tglanz.chesslysis.backend.examples.ChessComEndpointsDemo")
+    args = project.findProperty("appArgs")?.toString()?.split(",") ?: emptyList()
+}
+
+tasks.register<JavaExec>("runChessComAPI") {
+    group = "application"
+    description = "Run Chess.com API example"
+
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("io.tglanz.chesslysis.backend.examples.ChessComAPI")
+}
+
+tasks.register<JavaExec>("runChessComIngest") {
+    group = "application"
+    description = "Run Chess.com data ingestion"
+
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("io.tglanz.chesslysis.backend.examples.ChessComIngest")
+    args = project.findProperty("appArgs")?.toString()?.split(",") ?: emptyList()
 }
 
 spotless {

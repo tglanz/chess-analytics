@@ -8,14 +8,14 @@ import java.util.Objects;
 public class GamePlayerId implements Serializable {
 
   private Long gameId;
-  private Long accountId;
+  private String accountId;
 
   @Enumerated(EnumType.STRING)
   private Color color;
 
   public GamePlayerId() {}
 
-  public GamePlayerId(Long gameId, Long accountId, Color color) {
+  public GamePlayerId(Long gameId, String accountId, Color color) {
     this.gameId = gameId;
     this.accountId = accountId;
     this.color = color;
@@ -30,11 +30,11 @@ public class GamePlayerId implements Serializable {
     this.gameId = gameId;
   }
 
-  public Long getAccountId() {
+  public String getAccountId() {
     return accountId;
   }
 
-  public void setAccountId(Long accountId) {
+  public void setAccountId(String accountId) {
     this.accountId = accountId;
   }
 
