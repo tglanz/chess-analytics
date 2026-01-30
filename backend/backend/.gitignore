@@ -1,0 +1,18 @@
+# SQLite database files
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+# Build artifacts
+build/
+target/
+out/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Gradle
+.gradle/

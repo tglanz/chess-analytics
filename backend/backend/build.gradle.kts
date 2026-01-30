@@ -1,13 +1,14 @@
 plugins {
     java
+    id("org.springframework.boot") version "3.4.2"
+    id("io.spring.dependency-management") version "1.1.7"
     id("com.diffplug.spotless") version "6.25.0"
     checkstyle
 }
 
 java {
     toolchain {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        languageVersion = JavaLanguageVersion.of(17)
     }
 }
 
@@ -15,51 +16,22 @@ repositories {
     mavenCentral()
 }
 
+// Specify default main class for bootRun
+springBoot {
+    mainClass.set("io.tglanz.chesslytics.backend.app.ChesslyticsApiApplication")
+}
+
 dependencies {
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.18.2")
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
 
-    implementation("org.hibernate.orm:hibernate-core:6.6.41.Final")
-    implementation("org.hibernate.validator:hibernate-validator:8.0.0.Final")
-    implementation("org.glassfish:jakarta.el:4.0.2")
+    // Database drivers
+    runtimeOnly("org.xerial:sqlite-jdbc:3.47.1.0")
+    runtimeOnly("org.hibernate.orm:hibernate-community-dialects:6.6.5.Final")
+    runtimeOnly("org.postgresql:postgresql")
 
-    implementation("org.hibernate.orm:hibernate-agroal:6.6.41.Final")
-    implementation("io.agroal:agroal-pool:2.1")
-
-    runtimeOnly("org.apache.logging.log4j:log4j-core:2.25.3")
-
-    runtimeOnly("com.h2database:h2:2.3.232")
-
-
-    implementation("org.reflections:reflections:0.10.2")
-
-    // Bridge SLF4J to Log4j2
-    implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.21.0")
-}
-
-tasks.register<JavaExec>("runChessComDemo") {
-    group = "application"
-    description = "Run Chess.com API endpoints demo"
-
-    classpath = sourceSets["main"].runtimeClasspath
-    mainClass.set("io.tglanz.chesslysis.backend.examples.ChessComEndpointsDemo")
-    args = project.findProperty("appArgs")?.toString()?.split(",") ?: emptyList()
-}
-
-tasks.register<JavaExec>("runChessComAPI") {
-    group = "application"
-    description = "Run Chess.com API example"
-
-    classpath = sourceSets["main"].runtimeClasspath
-    mainClass.set("io.tglanz.chesslysis.backend.examples.ChessComAPI")
-}
-
-tasks.register<JavaExec>("runChessComIngest") {
-    group = "application"
-    description = "Run Chess.com data ingestion"
-
-    classpath = sourceSets["main"].runtimeClasspath
-    mainClass.set("io.tglanz.chesslysis.backend.examples.ChessComIngest")
-    args = project.findProperty("appArgs")?.toString()?.split(",") ?: emptyList()
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
 spotless {
@@ -72,6 +44,46 @@ spotless {
 }
 
 checkstyle {
-    toolVersion = "10.12.5"
+    toolVersion = "10.21.1"
     configFile = file("${project.rootDir}/config/checkstyle/checkstyle.xml")
 }
+
+configurations.checkstyle {
+    resolutionStrategy.capabilitiesResolution.withCapability("com.google.collections:google-collections") {
+        select("com.google.guava:guava:0")
+    }
+}
+
+tasks.register<JavaExec>("api") {
+    group = "application"
+    description = "Run REST API server"
+
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("io.tglanz.chesslytics.backend.app.ChesslyticsApiApplication")
+}
+
+tasks.register<JavaExec>("ingest") {
+    group = "application"
+    description = "Run Chess.com data ingestion (Usage: -Pusername=<username> [-Porder=asc|desc] [-Plimit=<number>])"
+
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("io.tglanz.chesslytics.backend.app.ChesslyticsIngestApplication")
+
+    val username = project.findProperty("username")?.toString()
+    val order = project.findProperty("order")?.toString()
+    val limit = project.findProperty("limit")?.toString()
+
+    if (username != null) {
+        args("--username=$username")
+    }
+    if (order != null) {
+        args("--order=$order")
+    }
+    if (limit != null) {
+        args("--limit=$limit")
+    }
+
+    // Disable web server for batch job
+    systemProperty("spring.main.web-application-type", "none")
+}
+
