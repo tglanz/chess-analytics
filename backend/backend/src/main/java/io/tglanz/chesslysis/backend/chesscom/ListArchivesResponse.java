@@ -6,6 +6,7 @@ import java.time.YearMonth;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class ListArchivesResponse {
   public static class ArchiveInfo {
@@ -41,6 +42,6 @@ public class ListArchivesResponse {
 
   @JsonCreator
   public ListArchivesResponse(@JsonProperty("archives") List<String> archiveStrings) {
-    archives = archiveStrings.stream().map(ArchiveInfo::parseUrl).toList();
+    archives = archiveStrings.stream().map(ArchiveInfo::parseUrl).collect(Collectors.toList());
   }
 }

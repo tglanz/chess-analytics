@@ -4,7 +4,7 @@ import io.tglanz.chesslysis.backend.chesscom.ChessComClient;
 import io.tglanz.chesslysis.backend.chesscom.ListArchivesResponse;
 
 public class Sanity {
-  public static void main(String[] args) {
+  static void main(String[] args) {
     ChessComClient client = new ChessComClient("tglanz");
     ListArchivesResponse result = client.listArchives();
 
